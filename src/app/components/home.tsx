@@ -1,10 +1,8 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function QuestComplete() {
   const [stars, setStars] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
-  const router = useRouter();
 
   useEffect(() => {
     setStars(
@@ -73,7 +71,7 @@ export default function QuestComplete() {
           <button className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
             Play Again
           </button>
-          <button className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105" onClick={() => router.push('/selection')}>
+          <button className="w-full sm:w-auto px-6 sm:px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
             Main Menu
           </button>
         </div>
