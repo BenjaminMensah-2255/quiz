@@ -73,6 +73,7 @@ export default function QuizQuest() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [hoveredCard, setHoveredCard] = useState<GameMode | null>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [bestStreak, setBestStreak] = useState(0);
 
   useEffect(() => {
     setStars(
@@ -99,6 +100,12 @@ export default function QuizQuest() {
       return () => clearInterval(timer);
     }
   }, [isFlipped, showResult, quizComplete, timeLeft, questions]);
+
+  useEffect(() => {
+    if (streak > bestStreak) {
+      setBestStreak(streak);
+    }
+  }, [streak, bestStreak]);
 
   const getTimeLimit = () => {
     switch (gameMode) {
@@ -214,6 +221,7 @@ export default function QuizQuest() {
     setScore(0);
     setQuizComplete(false);
     setStreak(0);
+    setBestStreak(0);
     setTimeLeft(15);
     setRemovedOptions([]);
     setHoveredCard(null);
@@ -229,9 +237,13 @@ export default function QuizQuest() {
 
   const progress = questions.length > 0 ? ((currentQuestion) / questions.length) * 100 : 0;
   const timeProgress = (timeLeft / getTimeLimit()) * 100;
+  
+  // Calculate quiz completion stats
+  const accuracy = questions.length > 0 ? Math.round((score / 10 / questions.length) * 100) : 0;
+  const xpGained = score + (bestStreak * 5);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-['Poppins']">
       {/* Starfield background */}
       <div className="absolute inset-0">
         {stars.map((star, i) => (
@@ -262,52 +274,59 @@ export default function QuizQuest() {
             style={{ backfaceVisibility: 'hidden' }}
           >
             {/* Title */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-6 sm:mb-8 bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-6 sm:mb-8 bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent font-['Poppins']">
               Quiz Quest
             </h1>
 
             {/* Stats grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="bg-indigo-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-indigo-700/40">
-                <div className="text-xs sm:text-sm text-slate-300 mb-1">Level</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">1</div>
+                <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">Level</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">1</div>
               </div>
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
-                <div className="text-xs sm:text-sm text-slate-300 mb-1">XP</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">0/100</div>
+                <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">XP</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/500</div>
               </div>
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
-                <div className="text-xs sm:text-sm text-slate-300 mb-1">High Score</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">0</div>
+                <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">High Score</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0</div>
               </div>
 
               <div className="bg-blue-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
-                <div className="text-xs sm:text-sm text-slate-300 mb-1">Achievements</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">0</div>
+                <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">Achievements</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/8</div>
               </div>
             </div>
 
-            {/* Game modes */}
+            {/* Game modes with floating animation and light flash effect */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
               {/* Classic */}
               <button 
                 onClick={() => handleGameModeSelect('classic')}
                 onMouseEnter={() => setHoveredCard('classic')}
                 onMouseLeave={() => setHoveredCard(null)}
-                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 ${
+                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 overflow-hidden animate-float-slow ${
                   hoveredCard === 'classic' 
                     ? 'border-purple-500 shadow-lg shadow-purple-500/30' 
                     : 'border-slate-600/40 hover:border-purple-400/60'
                 }`}
               >
+                {/* Light flash effect */}
+                {hoveredCard === 'classic' && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-light-flash" />
+                  </div>
+                )}
+                {/* Glow effect overlay */}
                 {hoveredCard === 'classic' && (
                   <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-purple-500/10 blur-sm -z-10" />
                 )}
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🎯</div>
-                <div className="text-sm sm:text-base font-bold text-white mb-1">Classic</div>
-                <div className="text-xs text-slate-400 leading-tight sm:leading-snug">5 questions, 15 seconds each</div>
+                <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Classic</div>
+                <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">5 questions, 15 seconds each</div>
               </button>
 
               {/* Time Attack */}
@@ -315,18 +334,24 @@ export default function QuizQuest() {
                 onClick={() => handleGameModeSelect('timeAttack')}
                 onMouseEnter={() => setHoveredCard('timeAttack')}
                 onMouseLeave={() => setHoveredCard(null)}
-                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 ${
+                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 overflow-hidden animate-float-slower ${
                   hoveredCard === 'timeAttack' 
                     ? 'border-purple-500 shadow-lg shadow-purple-500/30' 
                     : 'border-slate-600/40 hover:border-purple-400/60'
                 }`}
               >
+                {/* Light flash effect */}
+                {hoveredCard === 'timeAttack' && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-light-flash" />
+                  </div>
+                )}
                 {hoveredCard === 'timeAttack' && (
                   <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-purple-500/10 blur-sm -z-10" />
                 )}
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">⚡</div>
-                <div className="text-sm sm:text-base font-bold text-white mb-1">Time Attack</div>
-                <div className="text-xs text-slate-400 leading-tight sm:leading-snug">8 questions, 10 seconds each</div>
+                <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Time Attack</div>
+                <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">8 questions, 10 seconds each</div>
               </button>
 
               {/* Survival */}
@@ -334,18 +359,24 @@ export default function QuizQuest() {
                 onClick={() => handleGameModeSelect('survival')}
                 onMouseEnter={() => setHoveredCard('survival')}
                 onMouseLeave={() => setHoveredCard(null)}
-                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 ${
+                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 overflow-hidden animate-float-slow ${
                   hoveredCard === 'survival' 
                     ? 'border-purple-500 shadow-lg shadow-purple-500/30' 
                     : 'border-slate-600/40 hover:border-purple-400/60'
                 }`}
               >
+                {/* Light flash effect */}
+                {hoveredCard === 'survival' && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-light-flash" />
+                  </div>
+                )}
                 {hoveredCard === 'survival' && (
                   <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-purple-500/10 blur-sm -z-10" />
                 )}
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🛡️</div>
-                <div className="text-sm sm:text-base font-bold text-white mb-1">Survival</div>
-                <div className="text-xs text-slate-400 leading-tight sm:leading-snug">10 challenging questions</div>
+                <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Survival</div>
+                <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">10 challenging questions</div>
               </button>
 
               {/* Daily Challenge */}
@@ -353,18 +384,24 @@ export default function QuizQuest() {
                 onClick={handleDailyChallenge}
                 onMouseEnter={() => setHoveredCard('daily')}
                 onMouseLeave={() => setHoveredCard(null)}
-                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 ${
+                className={`relative bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border transition-all duration-300 hover:scale-105 overflow-hidden animate-float-slower ${
                   hoveredCard === 'daily' 
                     ? 'border-purple-500 shadow-lg shadow-purple-500/30' 
                     : 'border-slate-600/40 hover:border-purple-400/60'
                 }`}
               >
+                {/* Light flash effect */}
+                {hoveredCard === 'daily' && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-light-flash" />
+                  </div>
+                )}
                 {hoveredCard === 'daily' && (
                   <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-purple-500/10 blur-sm -z-10" />
                 )}
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🏆</div>
-                <div className="text-sm sm:text-base font-bold text-white mb-1">Daily Challenge</div>
-                <div className="text-xs text-slate-400 leading-tight sm:leading-snug">10 mixed questions</div>
+                <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Daily Challenge</div>
+                <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">10 mixed questions</div>
               </button>
             </div>
 
@@ -372,7 +409,7 @@ export default function QuizQuest() {
             <div className="flex justify-center">
               <button 
                 onClick={handleViewProfile}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
               >
                 View Profile
               </button>
@@ -391,17 +428,17 @@ export default function QuizQuest() {
               <>
                 {/* Header with Score and Streak */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-4">
-                  <div className="text-xl sm:text-2xl font-bold text-white">
+                  <div className="text-xl sm:text-2xl font-bold text-white font-['Poppins']">
                     Score: {score}
                   </div>
                   <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="text-sm sm:text-lg text-slate-300 capitalize">
+                    <div className="text-sm sm:text-lg text-slate-300 capitalize font-['Poppins']">
                       {gameMode} Mode
                     </div>
                     <div className="bg-orange-600/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 sm:gap-2">
                       <span className="text-xl sm:text-2xl">🔥</span>
-                      <span className="text-lg sm:text-xl font-bold text-white">{streak}</span>
-                      <span className="text-white font-semibold text-sm sm:text-base">Streak</span>
+                      <span className="text-lg sm:text-xl font-bold text-white font-['Poppins']">{streak}</span>
+                      <span className="text-white font-semibold text-sm sm:text-base font-['Poppins']">Streak</span>
                     </div>
                   </div>
                 </div>
@@ -416,18 +453,18 @@ export default function QuizQuest() {
                   </div>
                 </div>
 
-                {/* Question Container */}
-                <div className="bg-slate-700/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 border border-slate-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                {/* Question Container with floating animation */}
+                <div className="bg-slate-700/30 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-4 border border-slate-600/40 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-float-very-slow">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2 mb-2">
-                      <div className="text-xs sm:text-sm text-slate-400">
+                      <div className="text-xs sm:text-sm text-slate-400 font-['Poppins']">
                         Question {currentQuestion + 1} of {questions.length}
                       </div>
-                      <div className="text-xs sm:text-sm text-slate-400">
+                      <div className="text-xs sm:text-sm text-slate-400 font-['Poppins']">
                         Category: {questions[currentQuestion].category}
                       </div>
                     </div>
-                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white font-['Poppins']">
                       {questions[currentQuestion].question}
                     </h2>
                   </div>
@@ -452,7 +489,7 @@ export default function QuizQuest() {
                         style={{ transition: 'stroke-dashoffset 1s linear' }}
                       />
                     </svg>
-                    <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg sm:text-xl">
+                    <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg sm:text-xl font-['Poppins']">
                       {timeLeft}
                     </div>
                   </div>
@@ -463,7 +500,7 @@ export default function QuizQuest() {
                   <button
                     onClick={handleFiftyFifty}
                     disabled={fiftyFifty <= 0 || showResult}
-                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-['Poppins']"
                   >
                     <span className="text-white font-semibold text-sm">50/50</span>
                     <span className="ml-1 sm:ml-2 bg-slate-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-xs text-white">{fiftyFifty}</span>
@@ -472,7 +509,7 @@ export default function QuizQuest() {
                   <button
                     onClick={handlePlusTen}
                     disabled={plusTen <= 0 || showResult}
-                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-['Poppins']"
                   >
                     <span className="text-lg sm:text-xl">⏱️</span>
                     <span className="text-white font-semibold ml-1 text-sm">+10s</span>
@@ -482,7 +519,7 @@ export default function QuizQuest() {
                   <button
                     onClick={handleSkip}
                     disabled={skip <= 0 || showResult}
-                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    className="bg-slate-700/50 backdrop-blur-sm px-3 sm:px-4 py-2 rounded-xl border border-slate-600/40 hover:border-purple-500 hover:shadow-purple-500/20 hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-['Poppins']"
                   >
                     <span className="text-lg sm:text-xl">⏭️</span>
                     <span className="text-white font-semibold ml-1 text-sm">Skip</span>
@@ -527,10 +564,10 @@ export default function QuizQuest() {
                           shouldShake ? 'animate-shake' : ''
                         }`}
                       >
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-pink-500/80 flex items-center justify-center mr-2 sm:mr-3 font-bold text-white text-sm sm:text-base flex-shrink-0">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-pink-500/80 flex items-center justify-center mr-2 sm:mr-3 font-bold text-white text-sm sm:text-base flex-shrink-0 font-['Poppins']">
                           {optionLabels[index]}.
                         </div>
-                        <div className="text-white font-medium text-sm sm:text-lg break-words flex-1">
+                        <div className="text-white font-medium text-sm sm:text-lg break-words flex-1 font-['Poppins']">
                           {option}
                         </div>
                       </button>
@@ -543,40 +580,61 @@ export default function QuizQuest() {
                   <div className="flex justify-start">
                     <button
                       onClick={handleNextQuestion}
-                      className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                      className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
                     >
                       Next Question
                     </button>
                   </div>
                 )}
               </>
-            ) : (
-              /* Quiz Complete Screen */
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="text-4xl sm:text-5xl md:text-6xl mb-4 sm:mb-6">🎉</div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
-                  Quiz Complete!
-                </h2>
-                <div className="text-xl sm:text-2xl text-slate-300 mb-2">
-                  Your Score: <span className="text-green-400 font-bold">{score}</span>
+            ) : quizComplete ? (
+              /* Quiz Complete Screen - Updated Design */
+              <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                {/* Title */}
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 sm:mb-12 font-['Poppins']">
+                  # Quest Complete!
+                </h1>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12 w-full max-w-md">
+                  <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{score}</div>
+                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Score</div>
+                  </div>
+                  <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{accuracy}%</div>
+                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Accuracy</div>
+                  </div>
+                  <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{bestStreak}</div>
+                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Best Streak</div>
+                  </div>
+                  <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-400 mb-2 font-['Poppins']">+{xpGained}</div>
+                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">XP Gained</div>
+                  </div>
                 </div>
-                <div className="text-sm sm:text-lg text-slate-400 mb-6 sm:mb-8 capitalize">
-                  {gameMode} Mode
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md">
                   <button
                     onClick={() => handleGameModeSelect(gameMode!)}
-                    className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    className="flex-1 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-xl text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
                   >
-                    Try Again
+                    Play Again
                   </button>
                   <button
                     onClick={resetQuiz}
-                    className="px-4 sm:px-6 py-2 sm:py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    className="flex-1 px-6 sm:px-8 py-3 sm:py-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl text-base sm:text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
                   >
-                    Back to Menu
+                    Main Menu
                   </button>
                 </div>
+              </div>
+            ) : (
+              /* Loading State */
+              <div className="flex items-center justify-center h-full">
+                <div className="text-white text-xl font-['Poppins']">Loading...</div>
               </div>
             )}
           </div>
@@ -600,55 +658,55 @@ export default function QuizQuest() {
             {/* Profile Header */}
             <div className="text-center mb-4 sm:mb-6">
               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                <span className="text-lg sm:text-xl text-white font-bold">Q</span>
+                <span className="text-lg sm:text-xl text-white font-bold font-['Poppins']">Q</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">Quiz Master</h2>
-              <div className="text-slate-400 text-xs sm:text-sm">Level 1 Explorer</div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 font-['Poppins']">Quiz Master</h2>
+              <div className="text-slate-400 text-xs sm:text-sm font-['Poppins']">Level 1 Explorer</div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-5">
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1">0</div>
-                <div className="text-xs text-slate-300">Total XP</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-xs text-slate-300 font-['Poppins']">Total XP</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1">0</div>
-                <div className="text-xs text-slate-300">High Score</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-xs text-slate-300 font-['Poppins']">High Score</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1">0</div>
-                <div className="text-xs text-slate-300">Best Streak</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-xs text-slate-300 font-['Poppins']">Best Streak</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1">0</div>
-                <div className="text-xs text-slate-300">Games Played</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-xs text-slate-300 font-['Poppins']">Games Played</div>
               </div>
             </div>
 
             {/* Detailed Stats */}
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
               <div className="flex justify-between items-center">
-                <span className="text-slate-300 text-xs sm:text-sm">Total Correct:</span>
-                <span className="text-white font-semibold text-xs sm:text-sm">0</span>
+                <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Total Correct:</span>
+                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">0</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-300 text-xs sm:text-sm">Total Questions:</span>
-                <span className="text-white font-semibold text-xs sm:text-sm">0</span>
+                <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Total Questions:</span>
+                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">0</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-300 text-xs sm:text-sm">Overall Accuracy:</span>
-                <span className="text-green-400 font-semibold text-xs sm:text-sm">0%</span>
+                <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Overall Accuracy:</span>
+                <span className="text-green-400 font-semibold text-xs sm:text-sm font-['Poppins']">0%</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-300 text-xs sm:text-sm">Achievements:</span>
-                <span className="text-yellow-400 font-semibold text-xs sm:text-sm">0/8</span>
+                <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Achievements:</span>
+                <span className="text-yellow-400 font-semibold text-xs sm:text-sm font-['Poppins']">0/8</span>
               </div>
             </div>
 
             {/* XP Progress */}
             <div className="mb-4 sm:mb-5">
-              <div className="flex justify-between text-xs text-slate-300 mb-1 sm:mb-2">
+              <div className="flex justify-between text-xs text-slate-300 mb-1 sm:mb-2 font-['Poppins']">
                 <span>Level Progress</span>
                 <span>0/500 XP</span>
               </div>
@@ -663,7 +721,7 @@ export default function QuizQuest() {
             {/* Close Button */}
             <button
               onClick={closeProfile}
-              className="w-full py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg sm:rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+              className="w-full py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg sm:rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
             >
               Close Profile
             </button>
@@ -680,6 +738,35 @@ export default function QuizQuest() {
           0%, 100% { transform: translateX(0); }
           10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
           20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes float-slower {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        @keyframes float-very-slow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes light-flash {
+          0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+          50% { opacity: 0.3; }
+          100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+        }
+        .animate-float-slow {
+          animation: float-slow 6s ease-in-out infinite;
+        }
+        .animate-float-slower {
+          animation: float-slower 8s ease-in-out infinite;
+        }
+        .animate-float-very-slow {
+          animation: float-very-slow 10s ease-in-out infinite;
+        }
+        .animate-light-flash {
+          animation: light-flash 1.5s ease-out;
         }
         .animate-shake {
           animation: shake 0.5s;
