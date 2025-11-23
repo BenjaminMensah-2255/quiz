@@ -287,7 +287,7 @@ export default function QuizQuest() {
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">XP</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/500</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/100</div>
               </div>
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
@@ -297,7 +297,7 @@ export default function QuizQuest() {
 
               <div className="bg-blue-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">Achievements</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/8</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0</div>
               </div>
             </div>
 
