@@ -1,62 +1,121 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface Question {
   question: string;
   options: string[];
   correctAnswer: number;
   category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
 }
 
-// Questions organized by category
-const questionsByCategory = {
+// Enhanced questions with properly typed difficulty levels
+const questionsByCategory: Record<string, Question[]> = {
   classic: [
-    { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correctAnswer: 2, category: "Geography" },
-    { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], correctAnswer: 1, category: "Science" },
-    { question: "What is 7 × 8?", options: ["54", "56", "58", "60"], correctAnswer: 1, category: "Math" },
-    { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correctAnswer: 2, category: "Art" },
-    { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correctAnswer: 3, category: "Geography" },
+    { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correctAnswer: 2, category: "Geography", difficulty: 'easy' },
+    { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], correctAnswer: 1, category: "Science", difficulty: 'easy' },
+    { question: "What is 7 × 8?", options: ["54", "56", "58", "60"], correctAnswer: 1, category: "Math", difficulty: 'easy' },
+    { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correctAnswer: 2, category: "Art", difficulty: 'medium' },
+    { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correctAnswer: 3, category: "Geography", difficulty: 'medium' },
   ],
   timeAttack: [
-    { question: "How many continents are there?", options: ["5", "6", "7", "8"], correctAnswer: 2, category: "Geography" },
-    { question: "What is the smallest prime number?", options: ["0", "1", "2", "3"], correctAnswer: 2, category: "Math" },
-    { question: "Which gas do plants absorb?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correctAnswer: 2, category: "Science" },
-    { question: "In which year did WW2 end?", options: ["1943", "1944", "1945", "1946"], correctAnswer: 2, category: "History" },
-    { question: "What is the speed of light?", options: ["299,792 km/s", "150,000 km/s", "400,000 km/s", "500,000 km/s"], correctAnswer: 0, category: "Science" },
-    { question: "Who wrote 'Romeo and Juliet'?", options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], correctAnswer: 1, category: "Literature" },
-    { question: "What is H2O commonly known as?", options: ["Oxygen", "Hydrogen", "Water", "Carbon Dioxide"], correctAnswer: 2, category: "Science" },
-    { question: "Which country is known as the Land of the Rising Sun?", options: ["China", "Thailand", "Japan", "South Korea"], correctAnswer: 2, category: "Geography" },
+    { question: "How many continents are there?", options: ["5", "6", "7", "8"], correctAnswer: 2, category: "Geography", difficulty: 'easy' },
+    { question: "What is the smallest prime number?", options: ["0", "1", "2", "3"], correctAnswer: 2, category: "Math", difficulty: 'easy' },
+    { question: "Which gas do plants absorb?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correctAnswer: 2, category: "Science", difficulty: 'easy' },
+    { question: "In which year did WW2 end?", options: ["1943", "1944", "1945", "1946"], correctAnswer: 2, category: "History", difficulty: 'medium' },
+    { question: "What is the speed of light?", options: ["299,792 km/s", "150,000 km/s", "400,000 km/s", "500,000 km/s"], correctAnswer: 0, category: "Science", difficulty: 'hard' },
+    { question: "Who wrote 'Romeo and Juliet'?", options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], correctAnswer: 1, category: "Literature", difficulty: 'easy' },
+    { question: "What is H2O commonly known as?", options: ["Oxygen", "Hydrogen", "Water", "Carbon Dioxide"], correctAnswer: 2, category: "Science", difficulty: 'easy' },
+    { question: "Which country is known as the Land of the Rising Sun?", options: ["China", "Thailand", "Japan", "South Korea"], correctAnswer: 2, category: "Geography", difficulty: 'easy' },
   ],
   survival: [
-    { question: "What is the chemical symbol for gold?", options: ["Go", "Gd", "Au", "Ag"], correctAnswer: 2, category: "Science" },
-    { question: "Who developed the theory of relativity?", options: ["Newton", "Einstein", "Galileo", "Hawking"], correctAnswer: 1, category: "Science" },
-    { question: "What is the square root of 144?", options: ["11", "12", "13", "14"], correctAnswer: 1, category: "Math" },
-    { question: "Which element has the atomic number 1?", options: ["Helium", "Oxygen", "Hydrogen", "Carbon"], correctAnswer: 2, category: "Science" },
-    { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Platinum"], correctAnswer: 2, category: "Science" },
-    { question: "How many bones are in the human body?", options: ["206", "205", "207", "208"], correctAnswer: 0, category: "Biology" },
-    { question: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], correctAnswer: 2, category: "Geography" },
-    { question: "Who discovered penicillin?", options: ["Marie Curie", "Alexander Fleming", "Louis Pasteur", "Robert Koch"], correctAnswer: 1, category: "Science" },
-    { question: "What is the largest mammal in the world?", options: ["Elephant", "Blue Whale", "Giraffe", "Polar Bear"], correctAnswer: 1, category: "Biology" },
-    { question: "Which planet has the most moons?", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], correctAnswer: 1, category: "Science" },
+    { question: "What is the chemical symbol for gold?", options: ["Go", "Gd", "Au", "Ag"], correctAnswer: 2, category: "Science", difficulty: 'medium' },
+    { question: "Who developed the theory of relativity?", options: ["Newton", "Einstein", "Galileo", "Hawking"], correctAnswer: 1, category: "Science", difficulty: 'medium' },
+    { question: "What is the square root of 144?", options: ["11", "12", "13", "14"], correctAnswer: 1, category: "Math", difficulty: 'easy' },
+    { question: "Which element has the atomic number 1?", options: ["Helium", "Oxygen", "Hydrogen", "Carbon"], correctAnswer: 2, category: "Science", difficulty: 'easy' },
+    { question: "What is the hardest natural substance on Earth?", options: ["Gold", "Iron", "Diamond", "Platinum"], correctAnswer: 2, category: "Science", difficulty: 'medium' },
+    { question: "How many bones are in the human body?", options: ["206", "205", "207", "208"], correctAnswer: 0, category: "Biology", difficulty: 'hard' },
+    { question: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], correctAnswer: 2, category: "Geography", difficulty: 'medium' },
+    { question: "Who discovered penicillin?", options: ["Marie Curie", "Alexander Fleming", "Louis Pasteur", "Robert Koch"], correctAnswer: 1, category: "Science", difficulty: 'hard' },
+    { question: "What is the largest mammal in the world?", options: ["Elephant", "Blue Whale", "Giraffe", "Polar Bear"], correctAnswer: 1, category: "Biology", difficulty: 'easy' },
+    { question: "Which planet has the most moons?", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], correctAnswer: 1, category: "Science", difficulty: 'hard' },
   ],
   daily: [
-    { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correctAnswer: 2, category: "Geography" },
-    { question: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], correctAnswer: 1, category: "Science" },
-    { question: "What is 7 × 8?", options: ["54", "56", "58", "60"], correctAnswer: 1, category: "Math" },
-    { question: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], correctAnswer: 2, category: "Art" },
-    { question: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correctAnswer: 3, category: "Geography" },
-    { question: "How many continents are there?", options: ["5", "6", "7", "8"], correctAnswer: 2, category: "Geography" },
-    { question: "What is the smallest prime number?", options: ["0", "1", "2", "3"], correctAnswer: 2, category: "Math" },
-    { question: "Which gas do plants absorb?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], correctAnswer: 2, category: "Science" },
-    { question: "In which year did WW2 end?", options: ["1943", "1944", "1945", "1946"], correctAnswer: 2, category: "History" },
-    { question: "What is the speed of light?", options: ["299,792 km/s", "150,000 km/s", "400,000 km/s", "500,000 km/s"], correctAnswer: 0, category: "Science" },
+    { question: "What is the chemical symbol for sodium?", options: ["So", "Sa", "Na", "Sd"], correctAnswer: 2, category: "Science", difficulty: 'medium' },
+    { question: "Which programming language is known for web development?", options: ["Python", "Java", "JavaScript", "C++"], correctAnswer: 2, category: "Technology", difficulty: 'easy' },
+    { question: "What is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], correctAnswer: 1, category: "Geography", difficulty: 'medium' },
+    { question: "Who invented the telephone?", options: ["Thomas Edison", "Alexander Graham Bell", "Nikola Tesla", "Guglielmo Marconi"], correctAnswer: 1, category: "History", difficulty: 'medium' },
+    { question: "What is the capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], correctAnswer: 2, category: "Geography", difficulty: 'easy' },
+    { question: "How many sides does a hexagon have?", options: ["5", "6", "7", "8"], correctAnswer: 1, category: "Math", difficulty: 'easy' },
+    { question: "Which element is O on the periodic table?", options: ["Osmium", "Oxygen", "Oganesson", "Ozone"], correctAnswer: 1, category: "Science", difficulty: 'easy' },
+    { question: "What year did the Titanic sink?", options: ["1910", "1912", "1914", "1916"], correctAnswer: 1, category: "History", difficulty: 'medium' },
+    { question: "Who wrote '1984'?", options: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "J.K. Rowling"], correctAnswer: 0, category: "Literature", difficulty: 'medium' },
+    { question: "What is the fastest land animal?", options: ["Cheetah", "Lion", "Gazelle", "Pronghorn"], correctAnswer: 0, category: "Biology", difficulty: 'easy' },
   ]
 };
 
 type GameMode = 'classic' | 'timeAttack' | 'survival' | 'daily';
 
+interface UserProfile {
+  totalXP: number;
+  level: number;
+  gamesPlayed: number;
+  totalCorrect: number;
+  totalQuestions: number;
+  highScore: number;
+  bestStreak: number;
+  achievements: Achievement[];
+  modeStats: {
+    classic: { played: number; highScore: number };
+    timeAttack: { played: number; highScore: number };
+    survival: { played: number; highScore: number };
+    daily: { played: number; highScore: number };
+  };
+}
+
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  icon: string;
+  xpReward: number;
+}
+
+const ACHIEVEMENTS: Achievement[] = [
+  { id: 'first_win', name: 'First Victory', description: 'Complete your first quiz', unlocked: false, icon: '🏆', xpReward: 50 },
+  { id: 'streak_5', name: 'Hot Streak', description: 'Get a 5-question streak', unlocked: false, icon: '🔥', xpReward: 100 },
+  { id: 'perfect_score', name: 'Perfect Score', description: 'Get 100% on any quiz', unlocked: false, icon: '⭐', xpReward: 200 },
+  { id: 'speed_demon', name: 'Speed Demon', description: 'Complete Time Attack mode', unlocked: false, icon: '⚡', xpReward: 150 },
+  { id: 'survivor', name: 'Survivor', description: 'Complete Survival mode', unlocked: false, icon: '🛡️', xpReward: 200 },
+  { id: 'daily_champ', name: 'Daily Champion', description: 'Complete 7 daily challenges', unlocked: false, icon: '📅', xpReward: 300 },
+  { id: 'power_user', name: 'Power User', description: 'Use all power-ups in one game', unlocked: false, icon: '🎮', xpReward: 100 },
+  { id: 'quiz_master', name: 'Quiz Master', description: 'Reach level 10', unlocked: false, icon: '👑', xpReward: 500 },
+];
+
+// Default profile for SSR
+const defaultProfile: UserProfile = {
+  totalXP: 0,
+  level: 1,
+  gamesPlayed: 0,
+  totalCorrect: 0,
+  totalQuestions: 0,
+  highScore: 0,
+  bestStreak: 0,
+  achievements: ACHIEVEMENTS.map(achievement => ({ ...achievement, unlocked: false })),
+  modeStats: {
+    classic: { played: 0, highScore: 0 },
+    timeAttack: { played: 0, highScore: 0 },
+    survival: { played: 0, highScore: 0 },
+    daily: { played: 0, highScore: 0 },
+  }
+};
+
 export default function QuizQuest() {
+  // Starfield state
   const [stars, setStars] = useState<Array<{ left: number; top: number; duration: number; delay: number }>>([]);
+  
+  // Game state
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -73,9 +132,50 @@ export default function QuizQuest() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [hoveredCard, setHoveredCard] = useState<GameMode | null>(null);
   const [showProfile, setShowProfile] = useState(false);
-  const [bestStreak, setBestStreak] = useState(0);
+  
+  // User profile state - initialized with useEffect to avoid SSR mismatch
+  const [userProfile, setUserProfile] = useState<UserProfile>(defaultProfile);
+  const [hasMounted, setHasMounted] = useState(false);
 
+  // Initialize after mount to avoid SSR mismatch
   useEffect(() => {
+    setHasMounted(true);
+    
+    // Load profile from localStorage
+    const saved = localStorage.getItem('quizQuestProfile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Ensure all achievements exist
+        const achievementsWithDefaults = ACHIEVEMENTS.map(defaultAchievement => {
+          const savedAchievement = parsed.achievements?.find((a: Achievement) => a.id === defaultAchievement.id);
+          return savedAchievement || defaultAchievement;
+        });
+        
+        setUserProfile({
+          ...defaultProfile,
+          ...parsed,
+          achievements: achievementsWithDefaults,
+          modeStats: {
+            ...defaultProfile.modeStats,
+            ...(parsed.modeStats || {})
+          }
+        });
+      } catch (error) {
+        console.error('Error loading profile from localStorage:', error);
+        setUserProfile(defaultProfile);
+      }
+    }
+  }, []);
+
+  // Calculate XP needed for next level
+  const xpForNextLevel = userProfile.level * 100;
+  const xpProgress = (userProfile.totalXP % 100);
+
+  // Starfield initialization - only on client
+  useEffect(() => {
+    if (!hasMounted) return;
+    
     setStars(
       [...Array(50)].map(() => ({
         left: Math.random() * 100,
@@ -84,9 +184,19 @@ export default function QuizQuest() {
         delay: Math.random() * 2
       }))
     );
-  }, []);
+  }, [hasMounted]);
 
+  // Save profile to localStorage when it changes
   useEffect(() => {
+    if (!hasMounted) return;
+    
+    localStorage.setItem('quizQuestProfile', JSON.stringify(userProfile));
+  }, [userProfile, hasMounted]);
+
+  // Timer logic
+  useEffect(() => {
+    if (!hasMounted) return;
+    
     if (isFlipped && !showResult && !quizComplete && timeLeft > 0 && questions.length > 0) {
       const timer = setInterval(() => {
         setTimeLeft(prev => {
@@ -99,13 +209,7 @@ export default function QuizQuest() {
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [isFlipped, showResult, quizComplete, timeLeft, questions]);
-
-  useEffect(() => {
-    if (streak > bestStreak) {
-      setBestStreak(streak);
-    }
-  }, [streak, bestStreak]);
+  }, [isFlipped, showResult, quizComplete, timeLeft, questions, hasMounted]);
 
   const getTimeLimit = () => {
     switch (gameMode) {
@@ -123,6 +227,8 @@ export default function QuizQuest() {
   };
 
   const handleGameModeSelect = (mode: GameMode) => {
+    if (!hasMounted) return;
+    
     setGameMode(mode);
     const modeQuestions = getQuestionsForMode(mode);
     setQuestions(modeQuestions);
@@ -141,13 +247,15 @@ export default function QuizQuest() {
   };
 
   const handleTimeOut = () => {
+    if (!hasMounted) return;
+    
     setShowResult(true);
     setStreak(0);
     setTimeout(() => {
       if (currentQuestion < questions.length - 1) {
         moveToNextQuestion();
       } else {
-        setQuizComplete(true);
+        handleQuizComplete();
       }
     }, 1500);
   };
@@ -157,6 +265,8 @@ export default function QuizQuest() {
   };
 
   const moveToNextQuestion = () => {
+    if (!hasMounted) return;
+    
     setCurrentQuestion(currentQuestion + 1);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -164,30 +274,58 @@ export default function QuizQuest() {
     setRemovedOptions([]);
   };
 
+  const calculatePoints = (isCorrect: boolean, timeLeft: number, difficulty: 'easy' | 'medium' | 'hard') => {
+    let points = 0;
+    if (isCorrect) {
+      // Base points
+      const difficultyMultiplier = { easy: 1, medium: 1.5, hard: 2 };
+      const timeBonus = Math.floor(timeLeft * 0.5); // Bonus for answering quickly
+      const basePoints = 10 * difficultyMultiplier[difficulty];
+      points = basePoints + timeBonus;
+    }
+    return Math.floor(points);
+  };
+
   const handleAnswerClick = (index: number) => {
-    if (showResult || removedOptions.includes(index)) return;
+    if (!hasMounted || showResult || removedOptions.includes(index)) return;
     
     setSelectedAnswer(index);
     setShowResult(true);
     
-    if (index === questions[currentQuestion].correctAnswer) {
-      setScore(score + 10);
-      setStreak(streak + 1);
+    const isCorrect = index === questions[currentQuestion].correctAnswer;
+    const pointsEarned = calculatePoints(isCorrect, timeLeft, questions[currentQuestion].difficulty);
+    
+    if (isCorrect) {
+      setScore(prev => prev + pointsEarned);
+      setStreak(prev => prev + 1);
+      
+      // Update profile
+      setUserProfile(prev => ({
+        ...prev,
+        totalCorrect: prev.totalCorrect + 1,
+        totalQuestions: prev.totalQuestions + 1,
+      }));
     } else {
       setStreak(0);
+      setUserProfile(prev => ({
+        ...prev,
+        totalQuestions: prev.totalQuestions + 1,
+      }));
     }
   };
 
   const handleNextQuestion = () => {
+    if (!hasMounted) return;
+    
     if (currentQuestion < questions.length - 1) {
       moveToNextQuestion();
     } else {
-      setQuizComplete(true);
+      handleQuizComplete();
     }
   };
 
   const handleFiftyFifty = () => {
-    if (fiftyFifty <= 0 || showResult) return;
+    if (!hasMounted || fiftyFifty <= 0 || showResult) return;
     setFiftyFifty(fiftyFifty - 1);
     
     const correctAnswer = questions[currentQuestion].correctAnswer;
@@ -197,13 +335,13 @@ export default function QuizQuest() {
   };
 
   const handlePlusTen = () => {
-    if (plusTen <= 0 || showResult) return;
+    if (!hasMounted || plusTen <= 0 || showResult) return;
     setPlusTen(plusTen - 1);
-    setTimeLeft(timeLeft + 10);
+    setTimeLeft(prev => prev + 10);
   };
 
   const handleSkip = () => {
-    if (skip <= 0 || showResult) return;
+    if (!hasMounted || skip <= 0 || showResult) return;
     setSkip(skip - 1);
     
     if (currentQuestion < questions.length - 1) {
@@ -211,7 +349,73 @@ export default function QuizQuest() {
     }
   };
 
+  const handleQuizComplete = () => {
+    if (!hasMounted) return;
+    
+    setQuizComplete(true);
+    
+    // Calculate XP earned
+    const baseXP = score;
+    const streakBonus = streak * 5;
+    const accuracy = questions.length > 0 ? (score / (questions.length * 10)) * 100 : 0;
+    const accuracyBonus = accuracy >= 80 ? 50 : accuracy >= 60 ? 25 : 0;
+    const xpEarned = baseXP + streakBonus + accuracyBonus;
+    
+    // Check achievements
+    const newAchievements = [...userProfile.achievements];
+    let achievementsUnlocked = 0;
+    
+    if (userProfile.gamesPlayed === 0) {
+      const achievement = newAchievements.find(a => a.id === 'first_win');
+      if (achievement) {
+        achievement.unlocked = true;
+        achievementsUnlocked++;
+      }
+    }
+    
+    if (streak >= 5) {
+      const achievement = newAchievements.find(a => a.id === 'streak_5');
+      if (achievement && !achievement.unlocked) {
+        achievement.unlocked = true;
+        achievementsUnlocked++;
+      }
+    }
+    
+    if (accuracy === 100) {
+      const achievement = newAchievements.find(a => a.id === 'perfect_score');
+      if (achievement && !achievement.unlocked) {
+        achievement.unlocked = true;
+        achievementsUnlocked++;
+      }
+    }
+    
+    // Update profile
+    setUserProfile(prev => {
+      const newTotalXP = prev.totalXP + xpEarned;
+      const newLevel = Math.floor(newTotalXP / 100) + 1;
+      
+      return {
+        ...prev,
+        totalXP: newTotalXP,
+        level: newLevel,
+        gamesPlayed: prev.gamesPlayed + 1,
+        highScore: Math.max(prev.highScore, score),
+        bestStreak: Math.max(prev.bestStreak, streak),
+        achievements: newAchievements,
+        modeStats: {
+          ...prev.modeStats,
+          [gameMode!]: {
+            played: prev.modeStats[gameMode!].played + 1,
+            highScore: Math.max(prev.modeStats[gameMode!].highScore, score)
+          }
+        }
+      };
+    });
+  };
+
   const resetQuiz = () => {
+    if (!hasMounted) return;
+    
     setIsFlipped(false);
     setGameMode(null);
     setQuestions([]);
@@ -221,30 +425,57 @@ export default function QuizQuest() {
     setScore(0);
     setQuizComplete(false);
     setStreak(0);
-    setBestStreak(0);
     setTimeLeft(15);
     setRemovedOptions([]);
     setHoveredCard(null);
   };
 
   const handleViewProfile = () => {
+    if (!hasMounted) return;
+    
     setShowProfile(true);
   };
 
   const closeProfile = () => {
+    if (!hasMounted) return;
+    
     setShowProfile(false);
+  };
+
+  const resetProfile = () => {
+    if (!hasMounted) return;
+    
+    setUserProfile(defaultProfile);
+    localStorage.removeItem('quizQuestProfile');
   };
 
   const progress = questions.length > 0 ? ((currentQuestion) / questions.length) * 100 : 0;
   const timeProgress = (timeLeft / getTimeLimit()) * 100;
   
   // Calculate quiz completion stats
-  const accuracy = questions.length > 0 ? Math.round((score / 10 / questions.length) * 100) : 0;
-  const xpGained = score + (bestStreak * 5);
+  const accuracy = questions.length > 0 ? Math.round((userProfile.totalCorrect / userProfile.totalQuestions) * 100) : 0;
+  const xpGained = score + (streak * 5);
+  
+  // Calculate overall statistics
+  const overallAccuracy = userProfile.totalQuestions > 0 
+    ? Math.round((userProfile.totalCorrect / userProfile.totalQuestions) * 100) 
+    : 0;
+
+  // Unlocked achievements count
+  const unlockedAchievements = userProfile.achievements.filter(a => a.unlocked).length;
+
+  // Don't render starfield until mounted
+  if (!hasMounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 flex items-center justify-center p-4">
+        <div className="text-white">Loading Quiz Quest...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-['Poppins']">
-      {/* Starfield background */}
+      {/* Starfield background - only rendered on client */}
       <div className="absolute inset-0">
         {stars.map((star, i) => (
           <div
@@ -282,22 +513,36 @@ export default function QuizQuest() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="bg-indigo-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-indigo-700/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">Level</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">1</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">{userProfile.level}</div>
               </div>
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">XP</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0/100</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">{userProfile.totalXP}/{xpForNextLevel}</div>
               </div>
 
               <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">High Score</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">{userProfile.highScore}</div>
               </div>
 
               <div className="bg-blue-900/50 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center border border-slate-600/40">
                 <div className="text-xs sm:text-sm text-slate-300 mb-1 font-['Poppins']">Achievements</div>
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">0</div>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white font-['Poppins']">{unlockedAchievements}/8</div>
+              </div>
+            </div>
+
+            {/* XP Progress Bar */}
+            <div className="mb-4 sm:mb-6">
+              <div className="flex justify-between text-xs text-slate-300 mb-1 font-['Poppins']">
+                <span>Level Progress</span>
+                <span>{userProfile.totalXP % 100}/100 XP</span>
+              </div>
+              <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                  style={{ width: `${xpProgress}%` }}
+                />
               </div>
             </div>
 
@@ -327,6 +572,9 @@ export default function QuizQuest() {
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🎯</div>
                 <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Classic</div>
                 <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">5 questions, 15 seconds each</div>
+                <div className="text-xs text-purple-400 mt-1 font-['Poppins']">
+                  High Score: {userProfile.modeStats.classic.highScore}
+                </div>
               </button>
 
               {/* Time Attack */}
@@ -352,6 +600,9 @@ export default function QuizQuest() {
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">⚡</div>
                 <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Time Attack</div>
                 <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">8 questions, 10 seconds each</div>
+                <div className="text-xs text-purple-400 mt-1 font-['Poppins']">
+                  High Score: {userProfile.modeStats.timeAttack.highScore}
+                </div>
               </button>
 
               {/* Survival */}
@@ -377,6 +628,9 @@ export default function QuizQuest() {
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🛡️</div>
                 <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Survival</div>
                 <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">10 challenging questions</div>
+                <div className="text-xs text-purple-400 mt-1 font-['Poppins']">
+                  High Score: {userProfile.modeStats.survival.highScore}
+                </div>
               </button>
 
               {/* Daily Challenge */}
@@ -402,6 +656,9 @@ export default function QuizQuest() {
                 <div className="text-2xl sm:text-3xl md:text-4xl mb-1 sm:mb-2">🏆</div>
                 <div className="text-sm sm:text-base font-bold text-white mb-1 font-['Poppins']">Daily Challenge</div>
                 <div className="text-xs text-slate-400 leading-tight sm:leading-snug font-['Poppins']">10 mixed questions</div>
+                <div className="text-xs text-purple-400 mt-1 font-['Poppins']">
+                  High Score: {userProfile.modeStats.daily.highScore}
+                </div>
               </button>
             </div>
 
@@ -461,7 +718,7 @@ export default function QuizQuest() {
                         Question {currentQuestion + 1} of {questions.length}
                       </div>
                       <div className="text-xs sm:text-sm text-slate-400 font-['Poppins']">
-                        Category: {questions[currentQuestion].category}
+                        Category: {questions[currentQuestion].category} • Difficulty: {questions[currentQuestion].difficulty}
                       </div>
                     </div>
                     <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white font-['Poppins']">
@@ -538,7 +795,7 @@ export default function QuizQuest() {
                     
                     const isCorrect = index === questions[currentQuestion].correctAnswer;
                     const isSelected = selectedAnswer === index;
-                    const shouldShake = showResult && isSelected;
+                    const shouldShake = showResult && isSelected && !isCorrect;
                     
                     let bgColor = 'bg-slate-700/40';
                     let borderColor = 'border-slate-600/40';
@@ -570,6 +827,12 @@ export default function QuizQuest() {
                         <div className="text-white font-medium text-sm sm:text-lg break-words flex-1 font-['Poppins']">
                           {option}
                         </div>
+                        {showResult && isCorrect && (
+                          <div className="ml-2 text-green-400 text-xl flex-shrink-0">✓</div>
+                        )}
+                        {showResult && isSelected && !isCorrect && (
+                          <div className="ml-2 text-red-400 text-xl flex-shrink-0">✗</div>
+                        )}
                       </button>
                     );
                   })}
@@ -582,13 +845,13 @@ export default function QuizQuest() {
                       onClick={handleNextQuestion}
                       className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold rounded-full text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
                     >
-                      Next Question
+                      {currentQuestion < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
                     </button>
                   </div>
                 )}
               </>
             ) : quizComplete ? (
-              /* Quiz Complete Screen - Updated Design */
+              /* Quiz Complete Screen */
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 sm:mb-12 font-['Poppins']">
@@ -602,12 +865,12 @@ export default function QuizQuest() {
                     <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Score</div>
                   </div>
                   <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{accuracy}%</div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{overallAccuracy}%</div>
                     <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Accuracy</div>
                   </div>
                   <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{bestStreak}</div>
-                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Best Streak</div>
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 font-['Poppins']">{streak}</div>
+                    <div className="text-slate-300 text-sm sm:text-base font-['Poppins']">Final Streak</div>
                   </div>
                   <div className="bg-slate-700/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 text-center border border-slate-600/40">
                     <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-400 mb-2 font-['Poppins']">+{xpGained}</div>
@@ -644,11 +907,11 @@ export default function QuizQuest() {
       {/* Profile Modal */}
       {showProfile && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-800 via-purple-900/20 to-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-700/50 max-w-xs sm:max-w-sm w-full p-4 sm:p-6 relative">
+          <div className="bg-gradient-to-br from-slate-800 via-purple-900/20 to-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-700/50 max-w-xs sm:max-w-sm w-full p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button
               onClick={closeProfile}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 hover:text-white transition-colors duration-200"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 hover:text-white transition-colors duration-200 z-10"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -661,25 +924,25 @@ export default function QuizQuest() {
                 <span className="text-lg sm:text-xl text-white font-bold font-['Poppins']">Q</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-1 font-['Poppins']">Quiz Master</h2>
-              <div className="text-slate-400 text-xs sm:text-sm font-['Poppins']">Level 1 Explorer</div>
+              <div className="text-slate-400 text-xs sm:text-sm font-['Poppins']">Level {userProfile.level} Explorer</div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-5">
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">{userProfile.totalXP}</div>
                 <div className="text-xs text-slate-300 font-['Poppins']">Total XP</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">{userProfile.highScore}</div>
                 <div className="text-xs text-slate-300 font-['Poppins']">High Score</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">{userProfile.bestStreak}</div>
                 <div className="text-xs text-slate-300 font-['Poppins']">Best Streak</div>
               </div>
               <div className="bg-slate-700/40 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center border border-slate-600/40">
-                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">0</div>
+                <div className="text-base sm:text-lg font-bold text-white mb-1 font-['Poppins']">{userProfile.gamesPlayed}</div>
                 <div className="text-xs text-slate-300 font-['Poppins']">Games Played</div>
               </div>
             </div>
@@ -688,19 +951,38 @@ export default function QuizQuest() {
             <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-5">
               <div className="flex justify-between items-center">
                 <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Total Correct:</span>
-                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">0</span>
+                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">{userProfile.totalCorrect}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Total Questions:</span>
-                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">0</span>
+                <span className="text-white font-semibold text-xs sm:text-sm font-['Poppins']">{userProfile.totalQuestions}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Overall Accuracy:</span>
-                <span className="text-green-400 font-semibold text-xs sm:text-sm font-['Poppins']">0%</span>
+                <span className="text-green-400 font-semibold text-xs sm:text-sm font-['Poppins']">{overallAccuracy}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-300 text-xs sm:text-sm font-['Poppins']">Achievements:</span>
-                <span className="text-yellow-400 font-semibold text-xs sm:text-sm font-['Poppins']">0/8</span>
+                <span className="text-yellow-400 font-semibold text-xs sm:text-sm font-['Poppins']">{unlockedAchievements}/8</span>
+              </div>
+            </div>
+
+            {/* Achievements */}
+            <div className="mb-4 sm:mb-5">
+              <h3 className="text-sm sm:text-base font-bold text-white mb-2 sm:mb-3 font-['Poppins']">Achievements</h3>
+              <div className="grid grid-cols-4 gap-2">
+                {userProfile.achievements.map((achievement) => (
+                  <div
+                    key={achievement.id}
+                    className={`relative rounded-lg p-2 text-center ${achievement.unlocked ? 'bg-gradient-to-br from-purple-500/20 to-pink-500/20' : 'bg-slate-700/40'}`}
+                    title={achievement.name}
+                  >
+                    <div className="text-lg sm:text-xl mb-1">{achievement.icon}</div>
+                    <div className={`text-xs ${achievement.unlocked ? 'text-yellow-400' : 'text-slate-400'}`}>
+                      {achievement.unlocked ? '✓' : '🔒'}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -708,14 +990,24 @@ export default function QuizQuest() {
             <div className="mb-4 sm:mb-5">
               <div className="flex justify-between text-xs text-slate-300 mb-1 sm:mb-2 font-['Poppins']">
                 <span>Level Progress</span>
-                <span>0/500 XP</span>
+                <span>{xpProgress}/100 XP</span>
               </div>
               <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-                  style={{ width: `0%` }}
+                  style={{ width: `${xpProgress}%` }}
                 />
               </div>
+            </div>
+
+            {/* Reset Profile Button */}
+            <div className="mb-3 sm:mb-4">
+              <button
+                onClick={resetProfile}
+                className="w-full py-2 sm:py-2.5 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold rounded-lg sm:rounded-xl text-sm shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-['Poppins']"
+              >
+                Reset Profile
+              </button>
             </div>
 
             {/* Close Button */}
